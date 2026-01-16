@@ -23,4 +23,8 @@ public final class LangKeys {
     public static final String LOG_SYSTEM_READY = "arcadia:log.system.ready";
     public static final String LOG_CONFIG_FOLDER_CREATE_FAILED = "arcadia:log.config.folder_create_failed";
     public static final String LOG_CONFIG_DEFAULT_WRITE_FAILED = "arcadia:log.config.default_write_failed";
+    public static final String LOG_CONFIG_OWNER_INVALID = "arcadia:log.config.owner_invalid";
+    public static final String LOG_CONFIG_SERVER_NAME_INVALID = "arcadia:log.config.server_name_invalid";
+    public static final String LOG_CONFIG_DEFAULT_LANG_INVALID = "arcadia:log.config.default_lang_invalid";
+    public static final String LOG_CONFIG_STORAGE_INVALID = "arcadia:log.config.storage_invalid";
 }

@@ -32,6 +32,10 @@ public final class ConfigService {
         ensureDefaultConfig();
         config = new Config(configPath.toFile(), Config.YAML);
         coreConfig = CoreConfig.from(config);
+        I18n.get().setDefaultLangCode(coreConfig.getDefaultLangCode());
+        for (ConfigIssue issue : coreConfig.getIssues()) {
+            logger.warn(I18n.get().tr(issue.key(), issue.args()));
+        }
     }
 
     public CoreConfig getCoreConfig() {

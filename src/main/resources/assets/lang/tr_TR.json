@@ -15,5 +15,9 @@
   "arcadia:log.module.disable_failed": "Modul kapatilamadi: %s",
   "arcadia:log.system.ready": "System modul hazir. Owner: %s",
   "arcadia:log.config.folder_create_failed": "Data klasoru olusturulamadi: %s",
-  "arcadia:log.config.default_write_failed": "Varsayilan config yazilamadi: %s"
+  "arcadia:log.config.default_write_failed": "Varsayilan config yazilamadi: %s",
+  "arcadia:log.config.owner_invalid": "core.owner gecersiz, varsayilan kullaniliyor.",
+  "arcadia:log.config.server_name_invalid": "core.server-name gecersiz, varsayilan kullaniliyor.",
+  "arcadia:log.config.default_lang_invalid": "core.default-lang gecersiz: %s, fallback kullaniliyor.",
+  "arcadia:log.config.storage_invalid": "storage.type gecersiz: %s, yaml kullaniliyor."
 }

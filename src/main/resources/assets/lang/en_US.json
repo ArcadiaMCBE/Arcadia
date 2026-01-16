@@ -15,5 +15,9 @@
   "arcadia:log.module.disable_failed": "Module failed to disable: %s",
   "arcadia:log.system.ready": "System module ready. Owner: %s",
   "arcadia:log.config.folder_create_failed": "Failed to create data folder: %s",
-  "arcadia:log.config.default_write_failed": "Failed to write default config: %s"
+  "arcadia:log.config.default_write_failed": "Failed to write default config: %s",
+  "arcadia:log.config.owner_invalid": "Invalid core.owner, using default.",
+  "arcadia:log.config.server_name_invalid": "Invalid core.server-name, using default.",
+  "arcadia:log.config.default_lang_invalid": "Invalid core.default-lang: %s, using fallback.",
+  "arcadia:log.config.storage_invalid": "Invalid storage.type: %s, using yaml."
 }

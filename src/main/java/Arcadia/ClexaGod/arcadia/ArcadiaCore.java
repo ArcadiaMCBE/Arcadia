@@ -5,7 +5,6 @@ import Arcadia.ClexaGod.arcadia.i18n.MessageService;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.module.ModuleRegistry;
 import Arcadia.ClexaGod.arcadia.module.impl.SystemModule;
-import org.allaymc.api.message.I18n;
 import org.allaymc.api.plugin.Plugin;
 
 public class ArcadiaCore extends Plugin {
@@ -38,7 +37,6 @@ public class ArcadiaCore extends Plugin {
         messageService = new MessageService();
         configService = new ConfigService(getPluginContainer().dataFolder(), getClass().getClassLoader(), getPluginLogger());
         configService.load();
-        I18n.get().setDefaultLangCode(configService.getCoreConfig().getDefaultLangCode());
 
         moduleRegistry = new ModuleRegistry(getPluginLogger(), configService);
         moduleRegistry.register(new SystemModule());
