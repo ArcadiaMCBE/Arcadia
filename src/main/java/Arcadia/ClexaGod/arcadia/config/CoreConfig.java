@@ -156,10 +156,10 @@ public final class CoreConfig {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_TTL_INVALID, String.valueOf(cacheTtlSeconds)));
             cacheTtlSeconds = 600;
         }
-        int cacheMaxEntries = config.getInt("cache.max-entries", 5000);
+        int cacheMaxEntries = config.getInt("cache.max-entries", 2100);
         if (cacheMaxEntries <= 0) {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_MAX_ENTRIES_INVALID, String.valueOf(cacheMaxEntries)));
-            cacheMaxEntries = 5000;
+            cacheMaxEntries = 2100;
         }
         int cacheFlushInterval = config.getInt("cache.flush-interval-seconds", 30);
         if (cacheFlushInterval <= 0) {

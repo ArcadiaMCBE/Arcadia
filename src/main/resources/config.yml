@@ -24,7 +24,7 @@ storage:
 cache:
   enabled: true
   ttl-seconds: 600
-  max-entries: 5000
+  max-entries: 2100
   flush-interval-seconds: 30
 
 modules:

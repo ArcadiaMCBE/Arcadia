@@ -50,6 +50,10 @@ public final class LangKeys {
     public static final String LOG_STORAGE_JSON_READ_FAILED = "arcadia:log.storage.json_read_failed";
     public static final String LOG_STORAGE_JSON_WRITE_FAILED = "arcadia:log.storage.json_write_failed";
     public static final String LOG_STORAGE_JSON_DELETE_FAILED = "arcadia:log.storage.json_delete_failed";
+    public static final String LOG_STORAGE_POSTGRES_READ_FAILED = "arcadia:log.storage.postgres_read_failed";
+    public static final String LOG_STORAGE_POSTGRES_WRITE_FAILED = "arcadia:log.storage.postgres_write_failed";
+    public static final String LOG_STORAGE_POSTGRES_DELETE_FAILED = "arcadia:log.storage.postgres_delete_failed";
+    public static final String LOG_STORAGE_POSTGRES_EXISTS_FAILED = "arcadia:log.storage.postgres_exists_failed";
     public static final String LOG_STORAGE_QUEUE_STARTED = "arcadia:log.storage.queue_started";
     public static final String LOG_STORAGE_QUEUE_STOPPING = "arcadia:log.storage.queue_stopping";
     public static final String LOG_STORAGE_QUEUE_STOPPED = "arcadia:log.storage.queue_stopped";

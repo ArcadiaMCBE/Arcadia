@@ -16,6 +16,8 @@
 - Lombok kullanimi genisletildi (getter/constructor/utility siniflari).
 - Async I/O yazim kuyrugu altyapisi eklendi.
 - Storage cache eklendi: TTL, max entries ve periyodik flush ayarlari.
+- Ornek meta repository eklendi ve cache sarmalama (withCache) akisi moduller icin gosterildi.
+- PostgreSQL meta repository CRUD loglari i18n anahtarlarina tasindi.
 
 ## 0.1.0
 
