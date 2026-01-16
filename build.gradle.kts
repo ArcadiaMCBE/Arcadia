@@ -5,7 +5,7 @@ plugins {
 
 group = "Arcadia.ClexaGod.arcadia"
 description = "Arcadia core plugin for AllayMC"
-version = "0.1.0-SNAPSHOT"
+version = "0.2.0"
 
 tasks {
     withType<JavaCompile> {
@@ -17,6 +17,22 @@ tasks {
 
     withType<Copy> {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    named<Jar>("jar") {
+        archiveClassifier.set("")
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+        from(sourceSets.main.get().output)
+        from({
+            configurations.runtimeClasspath.get()
+                .filter { it.name.endsWith(".jar") }
+                .map { zipTree(it) }
+        })
+    }
+
+    named("build") {
+        dependsOn("jar")
     }
 }
 
@@ -36,4 +52,6 @@ allay {
 }
 
 dependencies {
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    runtimeOnly("org.postgresql:postgresql:42.7.3")
 }

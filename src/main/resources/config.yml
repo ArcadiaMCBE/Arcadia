@@ -5,7 +5,21 @@ core:
   default-lang: "tr_TR"
 
 storage:
-  type: "yaml"
+  type: "json"
+  json:
+    path: "data"
+  postgresql:
+    host: "127.0.0.1"
+    port: 5432
+    database: "arcadia"
+    user: "arcadia"
+    password: ""
+    ssl: false
+    pool:
+      max-size: 10
+      min-idle: 2
+      connection-timeout-ms: 10000
+      idle-timeout-ms: 600000
 
 modules:
   system: true
