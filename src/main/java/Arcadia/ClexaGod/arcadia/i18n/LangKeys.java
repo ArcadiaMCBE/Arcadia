@@ -33,6 +33,9 @@ public final class LangKeys {
     public static final String LOG_CONFIG_STORAGE_POSTGRES_DB_INVALID = "arcadia:log.config.storage_postgres_db_invalid";
     public static final String LOG_CONFIG_STORAGE_POSTGRES_USER_INVALID = "arcadia:log.config.storage_postgres_user_invalid";
     public static final String LOG_CONFIG_STORAGE_POSTGRES_POOL_INVALID = "arcadia:log.config.storage_postgres_pool_invalid";
+    public static final String LOG_CONFIG_CACHE_TTL_INVALID = "arcadia:log.config.cache_ttl_invalid";
+    public static final String LOG_CONFIG_CACHE_MAX_ENTRIES_INVALID = "arcadia:log.config.cache_max_entries_invalid";
+    public static final String LOG_CONFIG_CACHE_FLUSH_INTERVAL_INVALID = "arcadia:log.config.cache_flush_interval_invalid";
 
     public static final String LOG_STORAGE_SELECTED = "arcadia:log.storage.selected";
     public static final String LOG_STORAGE_INIT_SUCCESS = "arcadia:log.storage.init_success";
@@ -53,4 +56,8 @@ public final class LangKeys {
     public static final String LOG_STORAGE_QUEUE_FULL = "arcadia:log.storage.queue_full";
     public static final String LOG_STORAGE_QUEUE_TASK_FAILED = "arcadia:log.storage.queue_task_failed";
     public static final String LOG_STORAGE_QUEUE_SHUTDOWN_TIMEOUT = "arcadia:log.storage.queue_shutdown_timeout";
+    public static final String LOG_STORAGE_CACHE_ENABLED = "arcadia:log.storage.cache_enabled";
+    public static final String LOG_STORAGE_CACHE_DISABLED = "arcadia:log.storage.cache_disabled";
+    public static final String LOG_STORAGE_CACHE_FLUSH = "arcadia:log.storage.cache_flush";
+    public static final String LOG_STORAGE_CACHE_OVERFLOW = "arcadia:log.storage.cache_overflow";
 }

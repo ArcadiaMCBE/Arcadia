@@ -15,6 +15,7 @@
 - JSON icin atomik yazim ve repository iskeleti eklendi.
 - Lombok kullanimi genisletildi (getter/constructor/utility siniflari).
 - Async I/O yazim kuyrugu altyapisi eklendi.
+- Storage cache eklendi: TTL, max entries ve periyodik flush ayarlari.
 
 ## 0.1.0
 

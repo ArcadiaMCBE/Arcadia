@@ -3,6 +3,7 @@ package Arcadia.ClexaGod.arcadia.config;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.storage.PostgresConfig;
 import Arcadia.ClexaGod.arcadia.storage.StorageType;
+import Arcadia.ClexaGod.arcadia.storage.cache.CacheConfig;
 import lombok.Getter;
 import org.allaymc.api.message.I18n;
 import org.allaymc.api.message.LangCode;
@@ -26,12 +27,13 @@ public final class CoreConfig {
     private final StorageType storageType;
     private final String storageJsonPath;
     private final PostgresConfig postgresConfig;
+    private final CacheConfig cacheConfig;
     private final Map<String, Boolean> moduleToggles;
     private final List<ConfigIssue> issues;
 
     private CoreConfig(String owner, String serverName, boolean debug, String defaultLang,
                        StorageType storageType, String storageJsonPath, PostgresConfig postgresConfig,
-                       Map<String, Boolean> moduleToggles, List<ConfigIssue> issues) {
+                       CacheConfig cacheConfig, Map<String, Boolean> moduleToggles, List<ConfigIssue> issues) {
         this.owner = owner;
         this.serverName = serverName;
         this.debug = debug;
@@ -39,6 +41,7 @@ public final class CoreConfig {
         this.storageType = storageType;
         this.storageJsonPath = storageJsonPath;
         this.postgresConfig = postgresConfig;
+        this.cacheConfig = cacheConfig;
         this.moduleToggles = Collections.unmodifiableMap(moduleToggles);
         this.issues = Collections.unmodifiableList(issues);
     }
@@ -147,6 +150,24 @@ public final class CoreConfig {
                 pgMaxPool, pgMinIdle, pgConnTimeout, pgIdleTimeout
         );
 
+        boolean cacheEnabled = config.getBoolean("cache.enabled", true);
+        int cacheTtlSeconds = config.getInt("cache.ttl-seconds", 600);
+        if (cacheTtlSeconds <= 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_TTL_INVALID, String.valueOf(cacheTtlSeconds)));
+            cacheTtlSeconds = 600;
+        }
+        int cacheMaxEntries = config.getInt("cache.max-entries", 5000);
+        if (cacheMaxEntries <= 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_MAX_ENTRIES_INVALID, String.valueOf(cacheMaxEntries)));
+            cacheMaxEntries = 5000;
+        }
+        int cacheFlushInterval = config.getInt("cache.flush-interval-seconds", 30);
+        if (cacheFlushInterval <= 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_FLUSH_INTERVAL_INVALID, String.valueOf(cacheFlushInterval)));
+            cacheFlushInterval = 30;
+        }
+        CacheConfig cacheConfig = new CacheConfig(cacheEnabled, cacheTtlSeconds, cacheMaxEntries, cacheFlushInterval);
+
         Map<String, Boolean> moduleToggles = new LinkedHashMap<>();
         ConfigSection section = config.getSection("modules");
         for (Map.Entry<String, Object> entry : section.entrySet()) {
@@ -161,6 +182,7 @@ public final class CoreConfig {
             moduleToggles.put(key, enabled);
         }
 
-        return new CoreConfig(owner, serverName, debug, defaultLang, storageType, storageJsonPath, postgresConfig, moduleToggles, issues);
+        return new CoreConfig(owner, serverName, debug, defaultLang, storageType, storageJsonPath, postgresConfig,
+                cacheConfig, moduleToggles, issues);
     }
 }

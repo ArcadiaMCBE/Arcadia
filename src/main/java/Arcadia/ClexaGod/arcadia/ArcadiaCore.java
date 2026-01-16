@@ -34,7 +34,7 @@ public class ArcadiaCore extends Plugin {
         configService = new ConfigService(getPluginContainer().dataFolder(), getClass().getClassLoader(), getPluginLogger());
         configService.load();
 
-        storageManager = new StorageManager(getPluginLogger(), getPluginContainer().dataFolder());
+        storageManager = new StorageManager(getPluginLogger(), getPluginContainer().dataFolder(), this);
         storageManager.init(configService.getCoreConfig());
 
         moduleRegistry = new ModuleRegistry(getPluginLogger(), configService);

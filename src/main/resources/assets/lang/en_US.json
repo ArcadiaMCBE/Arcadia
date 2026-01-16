@@ -26,6 +26,9 @@
   "arcadia:log.config.storage_postgres_db_invalid": "Invalid storage.postgresql.database, using default.",
   "arcadia:log.config.storage_postgres_user_invalid": "Invalid storage.postgresql.user, using default.",
   "arcadia:log.config.storage_postgres_pool_invalid": "Invalid storage.postgresql.pool.%s: %s, using default.",
+  "arcadia:log.config.cache_ttl_invalid": "Invalid cache.ttl-seconds: %s, using default.",
+  "arcadia:log.config.cache_max_entries_invalid": "Invalid cache.max-entries: %s, using default.",
+  "arcadia:log.config.cache_flush_interval_invalid": "Invalid cache.flush-interval-seconds: %s, using default.",
   "arcadia:log.storage.selected": "Storage selected: %s",
   "arcadia:log.storage.init_success": "Storage initialized: %s",
   "arcadia:log.storage.init_failed": "Storage init failed: %s",
@@ -44,5 +47,9 @@
   "arcadia:log.storage.queue_stopped": "Storage queue stopped.",
   "arcadia:log.storage.queue_full": "Storage queue full (limit: %s).",
   "arcadia:log.storage.queue_task_failed": "Storage task failed: %s",
-  "arcadia:log.storage.queue_shutdown_timeout": "Storage queue not drained. Pending: %s"
+  "arcadia:log.storage.queue_shutdown_timeout": "Storage queue not drained. Pending: %s",
+  "arcadia:log.storage.cache_enabled": "Storage cache enabled: ttl=%ss, max=%s, flush=%ss",
+  "arcadia:log.storage.cache_disabled": "Storage cache disabled.",
+  "arcadia:log.storage.cache_flush": "Storage cache flush (%s): queued=%s, remaining=%s, evicted=%s, expired=%s",
+  "arcadia:log.storage.cache_overflow": "Storage cache over limit (%s): size=%s max=%s"
 }

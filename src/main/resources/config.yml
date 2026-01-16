@@ -21,5 +21,11 @@ storage:
       connection-timeout-ms: 10000
       idle-timeout-ms: 600000
 
+cache:
+  enabled: true
+  ttl-seconds: 600
+  max-entries: 5000
+  flush-interval-seconds: 30
+
 modules:
   system: true

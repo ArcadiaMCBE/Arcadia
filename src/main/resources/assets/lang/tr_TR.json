@@ -26,6 +26,9 @@
   "arcadia:log.config.storage_postgres_db_invalid": "storage.postgresql.database gecersiz, varsayilan kullaniliyor.",
   "arcadia:log.config.storage_postgres_user_invalid": "storage.postgresql.user gecersiz, varsayilan kullaniliyor.",
   "arcadia:log.config.storage_postgres_pool_invalid": "storage.postgresql.pool.%s gecersiz: %s, varsayilan kullaniliyor.",
+  "arcadia:log.config.cache_ttl_invalid": "cache.ttl-seconds gecersiz: %s, varsayilan kullaniliyor.",
+  "arcadia:log.config.cache_max_entries_invalid": "cache.max-entries gecersiz: %s, varsayilan kullaniliyor.",
+  "arcadia:log.config.cache_flush_interval_invalid": "cache.flush-interval-seconds gecersiz: %s, varsayilan kullaniliyor.",
   "arcadia:log.storage.selected": "Storage secildi: %s",
   "arcadia:log.storage.init_success": "Storage hazirlandi: %s",
   "arcadia:log.storage.init_failed": "Storage baslatilamadi: %s",
@@ -44,5 +47,9 @@
   "arcadia:log.storage.queue_stopped": "Storage kuyrugu durduruldu.",
   "arcadia:log.storage.queue_full": "Storage kuyrugu dolu (limit: %s).",
   "arcadia:log.storage.queue_task_failed": "Storage gorevi hata verdi: %s",
-  "arcadia:log.storage.queue_shutdown_timeout": "Storage kuyrugu bosalmadi. Kalan: %s"
+  "arcadia:log.storage.queue_shutdown_timeout": "Storage kuyrugu bosalmadi. Kalan: %s",
+  "arcadia:log.storage.cache_enabled": "Storage cache acik: ttl=%ss, max=%s, flush=%ss",
+  "arcadia:log.storage.cache_disabled": "Storage cache kapali.",
+  "arcadia:log.storage.cache_flush": "Storage cache flush (%s): queued=%s, kalan=%s, atilan=%s, sure-doldu=%s",
+  "arcadia:log.storage.cache_overflow": "Storage cache limit asildi (%s): size=%s max=%s"
 }
