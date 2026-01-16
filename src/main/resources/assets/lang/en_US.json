@@ -1,0 +1,19 @@
+{
+  "arcadia:message.prefix": "&7[&bArcadia&7] &r",
+  "arcadia:message.core_enabled": "Core enabled.",
+  "arcadia:message.core_disabled": "Core disabled.",
+  "arcadia:message.module.enabled": "Module enabled: %s",
+  "arcadia:message.module.disabled": "Module disabled: %s",
+  "arcadia:log.core.enabling": "Core enabling...",
+  "arcadia:log.core.enabled": "Core enabled.",
+  "arcadia:log.core.disabling": "Core disabling...",
+  "arcadia:log.core.disabled": "Core disabled.",
+  "arcadia:log.module.disabled_by_config": "Module disabled by config: %s",
+  "arcadia:log.module.enabled": "Module enabled: %s",
+  "arcadia:log.module.enable_failed": "Module failed to enable: %s",
+  "arcadia:log.module.disabled": "Module disabled: %s",
+  "arcadia:log.module.disable_failed": "Module failed to disable: %s",
+  "arcadia:log.system.ready": "System module ready. Owner: %s",
+  "arcadia:log.config.folder_create_failed": "Failed to create data folder: %s",
+  "arcadia:log.config.default_write_failed": "Failed to write default config: %s"
+}

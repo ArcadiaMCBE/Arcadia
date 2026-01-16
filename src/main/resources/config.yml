@@ -1,0 +1,11 @@
+core:
+  owner: "ClexaGod"
+  server-name: "Arcadia Skyblock"
+  debug: false
+  default-lang: "tr_TR"
+
+storage:
+  type: "yaml"
+
+modules:
+  system: true

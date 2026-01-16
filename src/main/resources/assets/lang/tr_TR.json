@@ -1,0 +1,19 @@
+{
+  "arcadia:message.prefix": "&7[&bArcadia&7] &r",
+  "arcadia:message.core_enabled": "Core acildi.",
+  "arcadia:message.core_disabled": "Core kapatildi.",
+  "arcadia:message.module.enabled": "Modul acildi: %s",
+  "arcadia:message.module.disabled": "Modul kapatildi: %s",
+  "arcadia:log.core.enabling": "Core aciliyor...",
+  "arcadia:log.core.enabled": "Core acildi.",
+  "arcadia:log.core.disabling": "Core kapatiliyor...",
+  "arcadia:log.core.disabled": "Core kapatildi.",
+  "arcadia:log.module.disabled_by_config": "Modul config ile kapali: %s",
+  "arcadia:log.module.enabled": "Modul acildi: %s",
+  "arcadia:log.module.enable_failed": "Modul acilamadi: %s",
+  "arcadia:log.module.disabled": "Modul kapatildi: %s",
+  "arcadia:log.module.disable_failed": "Modul kapatilamadi: %s",
+  "arcadia:log.system.ready": "System modul hazir. Owner: %s",
+  "arcadia:log.config.folder_create_failed": "Data klasoru olusturulamadi: %s",
+  "arcadia:log.config.default_write_failed": "Varsayilan config yazilamadi: %s"
+}
