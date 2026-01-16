@@ -4,21 +4,20 @@ import Arcadia.ClexaGod.arcadia.storage.migration.MigrationManager;
 import Arcadia.ClexaGod.arcadia.storage.migration.PostgresMigrations;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
 import java.sql.Connection;
 
+@RequiredArgsConstructor
 public final class PostgresStorageProvider implements StorageProvider {
 
     private final PostgresConfig config;
     private final Logger logger;
+    @Getter
     private HikariDataSource dataSource;
     private boolean ready;
-
-    public PostgresStorageProvider(PostgresConfig config, Logger logger) {
-        this.config = config;
-        this.logger = logger;
-    }
 
     @Override
     public StorageType getType() {
@@ -57,10 +56,6 @@ public final class PostgresStorageProvider implements StorageProvider {
     @Override
     public boolean isReady() {
         return ready;
-    }
-
-    public HikariDataSource getDataSource() {
-        return dataSource;
     }
 
     private String buildJdbcUrl() {

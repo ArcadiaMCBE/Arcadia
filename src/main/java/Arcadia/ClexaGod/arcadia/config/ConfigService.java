@@ -2,6 +2,7 @@ package Arcadia.ClexaGod.arcadia.config;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.util.ResourceUtils;
+import lombok.Getter;
 import org.allaymc.api.message.I18n;
 import org.allaymc.api.utils.config.Config;
 import org.slf4j.Logger;
@@ -17,7 +18,9 @@ public final class ConfigService {
     private final Logger logger;
     private final Path configPath;
 
+    @Getter
     private Config config;
+    @Getter
     private CoreConfig coreConfig;
 
     public ConfigService(Path dataFolder, ClassLoader classLoader, Logger logger) {
@@ -36,10 +39,6 @@ public final class ConfigService {
         for (ConfigIssue issue : coreConfig.getIssues()) {
             logger.warn(I18n.get().tr(issue.key(), issue.args()));
         }
-    }
-
-    public CoreConfig getCoreConfig() {
-        return coreConfig;
     }
 
     public void reload() {

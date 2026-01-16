@@ -1,5 +1,7 @@
 package Arcadia.ClexaGod.arcadia.storage.json;
 
+import lombok.experimental.UtilityClass;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -8,10 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
-public final class AtomicFileWriter {
-
-    private AtomicFileWriter() {
-    }
+@UtilityClass
+public class AtomicFileWriter {
 
     public static void write(Path path, String content) throws IOException {
         Path parent = path.getParent();

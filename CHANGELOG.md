@@ -13,6 +13,8 @@
 - PostgreSQL icin schema version tablosu ve migration sistemi eklendi.
 - Ilk migration olarak arcadia_meta tablosu olusturuldu.
 - JSON icin atomik yazim ve repository iskeleti eklendi.
+- Lombok kullanimi genisletildi (getter/constructor/utility siniflari).
+- Async I/O yazim kuyrugu altyapisi eklendi.
 
 ## 0.1.0
 

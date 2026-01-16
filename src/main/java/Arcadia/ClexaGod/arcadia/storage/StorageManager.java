@@ -2,23 +2,30 @@ package Arcadia.ClexaGod.arcadia.storage;
 
 import Arcadia.ClexaGod.arcadia.config.CoreConfig;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.storage.queue.AsyncWriteQueue;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.allaymc.api.message.I18n;
+import org.allaymc.api.server.Server;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.time.Duration;
 
+@RequiredArgsConstructor
 public final class StorageManager {
 
     private final Logger logger;
     private final Path dataFolder;
+    @Getter
+    private AsyncWriteQueue writeQueue;
     private StorageProvider provider;
 
-    public StorageManager(Logger logger, Path dataFolder) {
-        this.logger = logger;
-        this.dataFolder = dataFolder;
-    }
-
     public void init(CoreConfig config) {
+        if (writeQueue == null) {
+            writeQueue = new AsyncWriteQueue(Server.getInstance().getVirtualThreadPool(), logger, 5000);
+            writeQueue.start();
+        }
         StorageType requested = config.getStorageType();
         logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_SELECTED, requested.getId()));
 
@@ -40,6 +47,9 @@ public final class StorageManager {
     }
 
     public void close() {
+        if (writeQueue != null && writeQueue.isStarted()) {
+            writeQueue.shutdown(Duration.ofSeconds(10));
+        }
         if (provider != null) {
             provider.close();
         }

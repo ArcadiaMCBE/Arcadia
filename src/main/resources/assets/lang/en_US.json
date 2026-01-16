@@ -38,5 +38,11 @@
   "arcadia:log.storage.migration_failed": "Migration failed at version: %s",
   "arcadia:log.storage.json_read_failed": "JSON read failed: %s/%s",
   "arcadia:log.storage.json_write_failed": "JSON write failed: %s/%s",
-  "arcadia:log.storage.json_delete_failed": "JSON delete failed: %s/%s"
+  "arcadia:log.storage.json_delete_failed": "JSON delete failed: %s/%s",
+  "arcadia:log.storage.queue_started": "Storage queue started.",
+  "arcadia:log.storage.queue_stopping": "Storage queue stopping...",
+  "arcadia:log.storage.queue_stopped": "Storage queue stopped.",
+  "arcadia:log.storage.queue_full": "Storage queue full (limit: %s).",
+  "arcadia:log.storage.queue_task_failed": "Storage task failed: %s",
+  "arcadia:log.storage.queue_shutdown_timeout": "Storage queue not drained. Pending: %s"
 }

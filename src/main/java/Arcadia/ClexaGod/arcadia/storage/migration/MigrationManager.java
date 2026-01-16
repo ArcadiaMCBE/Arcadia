@@ -1,6 +1,7 @@
 package Arcadia.ClexaGod.arcadia.storage.migration;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import lombok.RequiredArgsConstructor;
 import org.allaymc.api.message.I18n;
 import org.slf4j.Logger;
 
@@ -13,17 +14,13 @@ import java.sql.Statement;
 import java.util.Comparator;
 import java.util.List;
 
+@RequiredArgsConstructor
 public final class MigrationManager {
 
     private static final String VERSION_TABLE = "arcadia_schema_version";
 
     private final DataSource dataSource;
     private final Logger logger;
-
-    public MigrationManager(DataSource dataSource, Logger logger) {
-        this.dataSource = dataSource;
-        this.logger = logger;
-    }
 
     public void migrate(List<Migration> migrations) throws SQLException {
         List<Migration> ordered = migrations.stream()

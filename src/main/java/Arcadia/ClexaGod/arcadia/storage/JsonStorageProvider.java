@@ -1,17 +1,18 @@
 package Arcadia.ClexaGod.arcadia.storage;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@RequiredArgsConstructor
 public final class JsonStorageProvider implements StorageProvider {
 
+    @Getter
     private final Path rootPath;
     private boolean ready;
-
-    public JsonStorageProvider(Path rootPath) {
-        this.rootPath = rootPath;
-    }
 
     @Override
     public StorageType getType() {
@@ -36,7 +37,4 @@ public final class JsonStorageProvider implements StorageProvider {
         return ready;
     }
 
-    public Path getRootPath() {
-        return rootPath;
-    }
 }

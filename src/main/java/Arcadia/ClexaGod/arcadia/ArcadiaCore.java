@@ -6,6 +6,7 @@ import Arcadia.ClexaGod.arcadia.i18n.MessageService;
 import Arcadia.ClexaGod.arcadia.module.ModuleRegistry;
 import Arcadia.ClexaGod.arcadia.module.impl.SystemModule;
 import Arcadia.ClexaGod.arcadia.storage.StorageManager;
+import lombok.Getter;
 import org.allaymc.api.message.I18n;
 import org.allaymc.api.plugin.Plugin;
 
@@ -13,29 +14,17 @@ public class ArcadiaCore extends Plugin {
 
     private static ArcadiaCore instance;
 
+    @Getter
     private ConfigService configService;
+    @Getter
     private ModuleRegistry moduleRegistry;
+    @Getter
     private MessageService messageService;
+    @Getter
     private StorageManager storageManager;
 
     public static ArcadiaCore getInstance() {
         return instance;
-    }
-
-    public ConfigService getConfigService() {
-        return configService;
-    }
-
-    public ModuleRegistry getModuleRegistry() {
-        return moduleRegistry;
-    }
-
-    public MessageService getMessageService() {
-        return messageService;
-    }
-
-    public StorageManager getStorageManager() {
-        return storageManager;
     }
 
     @Override

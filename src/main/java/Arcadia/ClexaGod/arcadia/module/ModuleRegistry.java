@@ -3,6 +3,7 @@ package Arcadia.ClexaGod.arcadia.module;
 import Arcadia.ClexaGod.arcadia.ArcadiaCore;
 import Arcadia.ClexaGod.arcadia.config.ConfigService;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import lombok.RequiredArgsConstructor;
 import org.allaymc.api.message.I18n;
 import org.slf4j.Logger;
 
@@ -10,16 +11,12 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+@RequiredArgsConstructor
 public final class ModuleRegistry {
 
     private final Logger logger;
     private final ConfigService configService;
     private final Map<String, Module> modules = new LinkedHashMap<>();
-
-    public ModuleRegistry(Logger logger, ConfigService configService) {
-        this.logger = logger;
-        this.configService = configService;
-    }
 
     public void register(Module module) {
         String key = normalize(module.getName());

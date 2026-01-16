@@ -4,6 +4,7 @@ import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.storage.json.AtomicFileWriter;
 import Arcadia.ClexaGod.arcadia.storage.model.StorageRecord;
 import Arcadia.ClexaGod.arcadia.storage.repository.StorageRepository;
+import lombok.RequiredArgsConstructor;
 import org.allaymc.api.message.I18n;
 import org.slf4j.Logger;
 
@@ -13,19 +14,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 public class JsonRepository<T extends StorageRecord> implements StorageRepository<T> {
 
     private final String name;
     private final Path rootPath;
     private final JsonCodec<T> codec;
     private final Logger logger;
-
-    public JsonRepository(String name, Path rootPath, JsonCodec<T> codec, Logger logger) {
-        this.name = name;
-        this.rootPath = rootPath;
-        this.codec = codec;
-        this.logger = logger;
-    }
 
     @Override
     public String getName() {

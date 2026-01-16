@@ -1,15 +1,15 @@
 package Arcadia.ClexaGod.arcadia.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-public final class ResourceUtils {
-
-    private ResourceUtils() {
-    }
+@UtilityClass
+public class ResourceUtils {
 
     public static void copyResource(ClassLoader classLoader, String resourceName, Path targetPath) throws IOException {
         try (InputStream input = classLoader.getResourceAsStream(resourceName)) {

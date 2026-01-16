@@ -3,6 +3,7 @@ package Arcadia.ClexaGod.arcadia.config;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.storage.PostgresConfig;
 import Arcadia.ClexaGod.arcadia.storage.StorageType;
+import lombok.Getter;
 import org.allaymc.api.message.I18n;
 import org.allaymc.api.message.LangCode;
 import org.allaymc.api.utils.config.Config;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Getter
 public final class CoreConfig {
 
     private final String owner;
@@ -41,41 +43,9 @@ public final class CoreConfig {
         this.issues = Collections.unmodifiableList(issues);
     }
 
-    public String getOwner() {
-        return owner;
-    }
-
-    public String getServerName() {
-        return serverName;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public String getDefaultLang() {
-        return defaultLang;
-    }
-
     public LangCode getDefaultLangCode() {
         LangCode lang = LangCode.byName(defaultLang);
         return lang != null ? lang : I18n.FALLBACK_LANG;
-    }
-
-    public StorageType getStorageType() {
-        return storageType;
-    }
-
-    public String getStorageJsonPath() {
-        return storageJsonPath;
-    }
-
-    public PostgresConfig getPostgresConfig() {
-        return postgresConfig;
-    }
-
-    public List<ConfigIssue> getIssues() {
-        return issues;
     }
 
     public boolean isModuleEnabled(String moduleName) {
