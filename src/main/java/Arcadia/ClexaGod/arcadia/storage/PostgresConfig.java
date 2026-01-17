@@ -24,4 +24,18 @@ public final class PostgresConfig {
                 && username != null && !username.isBlank()
                 && port > 0 && port <= 65535;
     }
+
+    public String buildJdbcUrl() {
+        StringBuilder url = new StringBuilder();
+        url.append("jdbc:postgresql://")
+                .append(host)
+                .append(":")
+                .append(port)
+                .append("/")
+                .append(database);
+        if (ssl) {
+            url.append("?ssl=true");
+        }
+        return url.toString();
+    }
 }

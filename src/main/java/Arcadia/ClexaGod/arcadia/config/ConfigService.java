@@ -1,6 +1,8 @@
 package Arcadia.ClexaGod.arcadia.config;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.logging.LogCategory;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 import Arcadia.ClexaGod.arcadia.util.ResourceUtils;
 import lombok.Getter;
 import org.allaymc.api.message.I18n;
@@ -17,6 +19,7 @@ public final class ConfigService {
     private final ClassLoader classLoader;
     private final Logger logger;
     private final Path configPath;
+    private LogService logService;
 
     @Getter
     private Config config;
@@ -30,6 +33,10 @@ public final class ConfigService {
         this.configPath = dataFolder.resolve("config.yml");
     }
 
+    public void setLogService(LogService logService) {
+        this.logService = logService;
+    }
+
     public void load() {
         ensureDataFolder();
         ensureDefaultConfig();
@@ -37,7 +44,7 @@ public final class ConfigService {
         coreConfig = CoreConfig.from(config);
         I18n.get().setDefaultLangCode(coreConfig.getDefaultLangCode());
         for (ConfigIssue issue : coreConfig.getIssues()) {
-            logger.warn(I18n.get().tr(issue.key(), issue.args()));
+            logWarn(I18n.get().tr(issue.key(), issue.args()));
         }
     }
 
@@ -51,7 +58,7 @@ public final class ConfigService {
                 Files.createDirectories(dataFolder);
             }
         } catch (IOException e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_CONFIG_FOLDER_CREATE_FAILED, dataFolder.toString()), e);
+            logError(I18n.get().tr(LangKeys.LOG_CONFIG_FOLDER_CREATE_FAILED, dataFolder.toString()), e);
         }
     }
 
@@ -62,7 +69,23 @@ public final class ConfigService {
         try {
             ResourceUtils.copyResource(classLoader, "config.yml", configPath);
         } catch (IOException e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_CONFIG_DEFAULT_WRITE_FAILED, configPath.toString()), e);
+            logError(I18n.get().tr(LangKeys.LOG_CONFIG_DEFAULT_WRITE_FAILED, configPath.toString()), e);
         }
+    }
+
+    private void logWarn(String message) {
+        if (logService != null) {
+            logService.warn(LogCategory.CONFIG, message);
+            return;
+        }
+        logger.warn(message);
+    }
+
+    private void logError(String message, Throwable throwable) {
+        if (logService != null) {
+            logService.error(LogCategory.CONFIG, message, throwable);
+            return;
+        }
+        logger.error(message, throwable);
     }
 }

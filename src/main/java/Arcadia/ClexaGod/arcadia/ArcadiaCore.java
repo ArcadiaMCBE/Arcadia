@@ -3,6 +3,8 @@ package Arcadia.ClexaGod.arcadia;
 import Arcadia.ClexaGod.arcadia.config.ConfigService;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.i18n.MessageService;
+import Arcadia.ClexaGod.arcadia.logging.LogCategory;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 import Arcadia.ClexaGod.arcadia.module.ModuleRegistry;
 import Arcadia.ClexaGod.arcadia.module.impl.SystemModule;
 import Arcadia.ClexaGod.arcadia.storage.StorageManager;
@@ -22,6 +24,8 @@ public class ArcadiaCore extends Plugin {
     private MessageService messageService;
     @Getter
     private StorageManager storageManager;
+    @Getter
+    private LogService logService;
 
     public static ArcadiaCore getInstance() {
         return instance;
@@ -33,34 +37,36 @@ public class ArcadiaCore extends Plugin {
         messageService = new MessageService();
         configService = new ConfigService(getPluginContainer().dataFolder(), getClass().getClassLoader(), getPluginLogger());
         configService.load();
+        logService = new LogService(getPluginLogger(), configService.getCoreConfig().getLogConfig(), configService.getCoreConfig().isDebug());
+        configService.setLogService(logService);
 
-        storageManager = new StorageManager(getPluginLogger(), getPluginContainer().dataFolder(), this);
+        storageManager = new StorageManager(logService, getPluginContainer().dataFolder(), this);
         storageManager.init(configService.getCoreConfig());
 
-        moduleRegistry = new ModuleRegistry(getPluginLogger(), configService);
+        moduleRegistry = new ModuleRegistry(logService, configService);
         moduleRegistry.register(new SystemModule());
     }
 
     @Override
     public void onEnable() {
-        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_ENABLING));
+        logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_ENABLING));
         moduleRegistry.enableAll(this);
         if (storageManager != null) {
             storageManager.scheduleWarmUp();
         }
-        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_ENABLED));
+        logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_ENABLED));
     }
 
     @Override
     public void onDisable() {
-        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_DISABLING));
+        logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_DISABLING));
         if (moduleRegistry != null) {
             moduleRegistry.disableAll();
         }
         if (storageManager != null) {
             storageManager.close();
         }
-        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_DISABLED));
+        logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_DISABLED));
     }
 
     @Override
@@ -70,7 +76,7 @@ public class ArcadiaCore extends Plugin {
 
     @Override
     public void reload() {
-        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_RELOADING));
+        logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_RELOADING));
         try {
             if (moduleRegistry != null) {
                 moduleRegistry.disableAll();
@@ -81,6 +87,9 @@ public class ArcadiaCore extends Plugin {
             if (configService != null) {
                 configService.reload();
             }
+            if (logService != null && configService != null) {
+                logService.update(configService.getCoreConfig().getLogConfig(), configService.getCoreConfig().isDebug());
+            }
             if (storageManager != null && configService != null) {
                 storageManager.init(configService.getCoreConfig());
             }
@@ -90,9 +99,9 @@ public class ArcadiaCore extends Plugin {
             if (storageManager != null) {
                 storageManager.scheduleWarmUp();
             }
-            getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_RELOADED));
+            logService.info(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_RELOADED));
         } catch (Exception e) {
-            getPluginLogger().error(I18n.get().tr(LangKeys.LOG_CORE_RELOAD_FAILED), e);
+            logService.error(LogCategory.CORE, I18n.get().tr(LangKeys.LOG_CORE_RELOAD_FAILED), e);
         }
     }
 }

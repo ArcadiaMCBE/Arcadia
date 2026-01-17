@@ -4,10 +4,38 @@ core:
   debug: false
   default-lang: "tr_TR"
 
+logging:
+  # default log level (debug|info|warn|error)
+  default-level: "debug"
+  # apply core.debug to default log level
+  use-core-debug: true
+  # add [category] prefix to log lines
+  include-category-prefix: true
+  categories:
+    core: "info"
+    config: "warn"
+    module: "info"
+    storage: "info"
+    cache: "info"
+    queue: "warn"
+    migration: "info"
+    maintenance: "info"
+
 storage:
   type: "json"
   json:
     path: "data"
+    shard:
+      # enable shard directories for json files
+      enabled: false
+      # hash | prefix
+      strategy: "hash"
+      # number of shard levels (1-4)
+      depth: 2
+      # chars per level (1-4)
+      chars-per-level: 2
+      # move legacy flat files into shard path on read
+      migrate-legacy-on-read: false
   queue:
     # max queued write tasks before applying on-full policy
     max-size: 5000
@@ -26,6 +54,35 @@ storage:
     max-delay-ms: 1000
     # random jitter added to delay (ms)
     jitter-ms: 50
+  health:
+    # run storage health checks on startup
+    enabled: true
+    # log health check results on startup
+    log-on-startup: true
+    # json storage write test
+    json-write-test: true
+    # postgres connection test
+    postgres-test: true
+    # postgres connection timeout (ms)
+    connection-timeout-ms: 3000
+  seed:
+    # seed base meta records on startup
+    enabled: true
+    meta:
+      owner: true
+      server-name: true
+      created-at: true
+  migration:
+    # data migration between json and postgres
+    enabled: false
+    # json-to-postgres | postgres-to-json
+    direction: "json-to-postgres"
+    # simulate without writing
+    dry-run: true
+    # max records to migrate
+    max-records: 10000
+    # skip records that already exist in target
+    skip-existing: true
   postgresql:
     host: "127.0.0.1"
     port: 5432
@@ -38,6 +95,21 @@ storage:
       min-idle: 2
       connection-timeout-ms: 10000
       idle-timeout-ms: 600000
+      auto:
+        # auto size pool based on cores/players
+        enabled: false
+        # clamp range for auto sizing
+        min-size: 8
+        max-size: 32
+        # min idle percent of max pool (0-100)
+        min-idle-percent: 25
+        # connections per usable core
+        cores-multiplier: 2
+        # keep some cores for server threads
+        reserve-cores: 1
+        # optional player-based sizing
+        expected-players: 0
+        players-per-connection: 50
 
 cache:
   enabled: true
@@ -56,6 +128,20 @@ cache:
     delay-seconds: 5
   # flush cache when player quits/disconnects
   flush-on-player-quit: true
+  policies:
+    # default cache policy (applies to all repos unless overridden)
+    default:
+      enabled: true
+      # write-through on save (critical data)
+      flush-on-save: false
+      # flush-on-save timeout (ms)
+      flush-timeout-ms: 2000
+    # per-repo overrides (key = repository name)
+    repos:
+      meta:
+        enabled: true
+        flush-on-save: true
+        flush-timeout-ms: 2000
 
 modules:
   system: true

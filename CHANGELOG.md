@@ -25,6 +25,14 @@
 - StorageRepository API genisletildi: loadAll, count ve filter destegi.
 - Cache warmup ve player quit/disconnect flush akisi eklendi.
 - Storage write retry/backoff ve queue full stratejisi eklendi.
+- Storage maintenance eklendi: health check, meta seeding ve JSON ↔ PostgreSQL veri migrasyonu.
+- JSON yazimlari icin dosya kilidi (file lock + JVM lock) eklendi.
+- Cache metrikleri eklendi: hit/miss, flush sayisi ve queue size takibi.
+- Cache politikalari eklendi: default ve repo bazli flush-on-save/timeout ayarlari.
+- Gelismis log sistemi eklendi: kategori bazli seviye kontrolu, core.debug entegrasyonu ve opsiyonel prefix.
+- Gelismis health raporu komutu eklendi: core/runtime/storage/queue/cache/db raporu ve istege bagli health check.
+- JSON storage icin shard/alt klasor yapisi eklendi (hash/prefix, depth, chars-per-level, legacy migrate).
+- PostgreSQL pool auto sizing eklendi (cekirdek/oyuncu bazli hesaplama ve log).
 
 ## 0.1.0
 

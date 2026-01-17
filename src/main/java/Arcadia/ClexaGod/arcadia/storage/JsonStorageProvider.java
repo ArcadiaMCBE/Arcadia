@@ -1,5 +1,6 @@
 package Arcadia.ClexaGod.arcadia.storage;
 
+import Arcadia.ClexaGod.arcadia.storage.json.JsonShardConfig;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +13,8 @@ public final class JsonStorageProvider implements StorageProvider {
 
     @Getter
     private final Path rootPath;
+    @Getter
+    private final JsonShardConfig shardConfig;
     private boolean ready;
 
     @Override

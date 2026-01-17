@@ -1,12 +1,13 @@
 package Arcadia.ClexaGod.arcadia.storage.cache;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.logging.LogCategory;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 import Arcadia.ClexaGod.arcadia.storage.model.StorageRecord;
 import Arcadia.ClexaGod.arcadia.storage.queue.AsyncWriteQueue;
 import Arcadia.ClexaGod.arcadia.storage.queue.WriteTask;
 import Arcadia.ClexaGod.arcadia.storage.repository.StorageRepository;
 import org.allaymc.api.message.I18n;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,16 +20,18 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
     private final StorageRepository<T> delegate;
     private final RecordCache<T> cache;
     private final AsyncWriteQueue queue;
-    private final Logger logger;
+    private final LogService logService;
     private final CachePolicy policy;
+    private final CacheMetrics metrics;
 
-    public CachedRepository(StorageRepository<T> delegate, RecordCache<T> cache, AsyncWriteQueue queue, Logger logger,
+    public CachedRepository(StorageRepository<T> delegate, RecordCache<T> cache, AsyncWriteQueue queue, LogService logService,
                             CachePolicy policy) {
         this.delegate = delegate;
         this.cache = cache;
         this.queue = queue;
-        this.logger = logger;
+        this.logService = logService;
         this.policy = policy;
+        this.metrics = new CacheMetrics();
     }
 
     @Override
@@ -40,8 +43,10 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
     public Optional<T> load(String id) {
         Optional<T> cached = cache.get(id);
         if (cached.isPresent()) {
+            metrics.recordHit();
             return cached;
         }
+        metrics.recordMiss();
         Optional<T> loaded = delegate.load(id);
         loaded.ifPresent(record -> cache.put(record, false));
         return loaded;
@@ -58,7 +63,8 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
             if (flushed) {
                 cache.markClean(record.getId());
             } else {
-                logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_FLUSH_ON_SAVE_FAILED, getName(), record.getId()));
+                logService.warn(LogCategory.CACHE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_FLUSH_ON_SAVE_FAILED, getName(), record.getId()));
             }
             return;
         }
@@ -74,8 +80,10 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
     @Override
     public boolean exists(String id) {
         if (cache.contains(id)) {
+            metrics.recordHit();
             return true;
         }
+        metrics.recordMiss();
         return delegate.exists(id);
     }
 
@@ -121,8 +129,11 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
     }
 
     public void flush() {
+        metrics.recordFlush();
         int expired = cache.evictExpired();
         int evicted = cache.evictOverflow();
+        metrics.recordEvictedExpired(expired);
+        metrics.recordEvictedOverflow(evicted);
 
         List<RecordCache.CacheSnapshot<T>> dirty = cache.snapshotDirty();
         int queued = 0;
@@ -131,10 +142,11 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
                 queued++;
             }
         }
+        metrics.recordQueueSize(queue.getQueueSize());
 
         int remaining = cache.countDirty();
         if (queued > 0 || expired > 0 || evicted > 0 || remaining > 0) {
-            logger.info(I18n.get().tr(
+            logService.info(LogCategory.CACHE, I18n.get().tr(
                     LangKeys.LOG_STORAGE_CACHE_FLUSH,
                     getName(), queued, remaining, evicted, expired
             ));
@@ -142,7 +154,8 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
 
         int size = cache.size();
         if (size > cache.getMaxEntries()) {
-            logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_OVERFLOW, getName(), size, cache.getMaxEntries()));
+            logService.warn(LogCategory.CACHE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_OVERFLOW, getName(), size, cache.getMaxEntries()));
         }
     }
 
@@ -151,7 +164,11 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
         if (key == null) {
             return;
         }
-        queue.enqueue(new WriteTask(key, "delete " + getName() + "/" + id, () -> delegate.delete(id)));
+        boolean enqueued = queue.enqueue(new WriteTask(key, "delete " + getName() + "/" + id, () -> delegate.delete(id)));
+        if (enqueued) {
+            metrics.recordWriteTasks(1);
+            metrics.recordQueueSize(queue.getQueueSize());
+        }
     }
 
     private boolean enqueueSave(T record) {
@@ -163,6 +180,8 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
         boolean enqueued = queue.enqueue(new WriteTask(key, "save " + getName() + "/" + id, () -> delegate.save(record)));
         if (enqueued) {
             cache.markClean(id);
+            metrics.recordWriteTasks(1);
+            metrics.recordQueueSize(queue.getQueueSize());
         }
         return enqueued;
     }
@@ -174,7 +193,16 @@ public final class CachedRepository<T extends StorageRecord> implements StorageR
             return false;
         }
         WriteTask task = new WriteTask(key, "save " + getName() + "/" + id, () -> delegate.save(record));
-        return queue.enqueueAndWait(task, policy.flushTimeout());
+        boolean result = queue.enqueueAndWait(task, policy.flushTimeout());
+        if (result) {
+            metrics.recordWriteTasks(1);
+            metrics.recordQueueSize(queue.getQueueSize());
+        }
+        return result;
+    }
+
+    public CacheMetrics getMetrics() {
+        return metrics;
     }
 
     private String buildKey(String id) {

@@ -1,9 +1,10 @@
 package Arcadia.ClexaGod.arcadia.storage.queue;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.logging.LogCategory;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 import lombok.Getter;
 import org.allaymc.api.message.I18n;
-import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class AsyncWriteQueue {
 
     private final ExecutorService executor;
-    private final Logger logger;
+    private final LogService logService;
     private final int maxQueueSize;
     private final QueueFullPolicy fullPolicy;
     private final int fullTimeoutMs;
@@ -33,9 +34,9 @@ public final class AsyncWriteQueue {
     @Getter
     private volatile boolean started;
 
-    public AsyncWriteQueue(ExecutorService executor, Logger logger, int maxQueueSize, QueueFullPolicy fullPolicy, int fullTimeoutMs) {
+    public AsyncWriteQueue(ExecutorService executor, LogService logService, int maxQueueSize, QueueFullPolicy fullPolicy, int fullTimeoutMs) {
         this.executor = Objects.requireNonNull(executor, "executor");
-        this.logger = Objects.requireNonNull(logger, "logger");
+        this.logService = Objects.requireNonNull(logService, "logService");
         this.maxQueueSize = Math.max(1, maxQueueSize);
         this.fullPolicy = fullPolicy != null ? fullPolicy : QueueFullPolicy.BLOCK;
         this.fullTimeoutMs = Math.max(0, fullTimeoutMs);
@@ -61,7 +62,7 @@ public final class AsyncWriteQueue {
         accepting.set(true);
         workerFuture = executor.submit(this::runLoop);
         started = true;
-        logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STARTED));
+        logService.info(LogCategory.QUEUE, I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STARTED));
     }
 
     public boolean enqueue(WriteTask task) {
@@ -141,18 +142,20 @@ public final class AsyncWriteQueue {
     public void shutdown(Duration timeout) {
         accepting.set(false);
         running.set(false);
-        logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STOPPING));
+        logService.info(LogCategory.QUEUE, I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STOPPING));
         boolean drained = waitForDrain(timeout);
         if (!drained) {
             int pendingItems = queue.size();
             int pendingKeys = keyedTasks.size();
-            logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FORCE_DRAIN, pendingItems, pendingKeys));
+            logService.warn(LogCategory.QUEUE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FORCE_DRAIN, pendingItems, pendingKeys));
             cancelWorker();
             int drainedInline = drainInline();
-            logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FORCE_DRAIN_COMPLETE, drainedInline));
+            logService.warn(LogCategory.QUEUE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FORCE_DRAIN_COMPLETE, drainedInline));
         }
         started = false;
-        logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STOPPED));
+        logService.info(LogCategory.QUEUE, I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_STOPPED));
     }
 
     public int getQueueSize() {
@@ -180,7 +183,8 @@ public final class AsyncWriteQueue {
                 task.action().run();
                 complete(resolved, true, null);
             } catch (Exception e) {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, task.description()), e);
+                logService.error(LogCategory.QUEUE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, task.description()), e);
                 complete(resolved, false, e);
             }
         }
@@ -208,7 +212,8 @@ public final class AsyncWriteQueue {
             }
         }
         if (!queue.isEmpty() || !keyedTasks.isEmpty()) {
-            logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_SHUTDOWN_TIMEOUT, queue.size()));
+            logService.warn(LogCategory.QUEUE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_SHUTDOWN_TIMEOUT, queue.size()));
             return false;
         }
         waitForWorker(Duration.ofMillis(200));
@@ -246,7 +251,8 @@ public final class AsyncWriteQueue {
                 complete(resolved, true, null);
                 executed++;
             } catch (Exception e) {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, task.description()), e);
+                logService.error(LogCategory.QUEUE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, task.description()), e);
                 complete(resolved, false, e);
             }
         }
@@ -257,7 +263,8 @@ public final class AsyncWriteQueue {
                     complete(new ResolvedTask(keyedTask.task(), keyedTask.completion()), true, null);
                     executed++;
                 } catch (Exception e) {
-                    logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, keyedTask.task().description()), e);
+                    logService.error(LogCategory.QUEUE,
+                            I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, keyedTask.task().description()), e);
                     complete(new ResolvedTask(keyedTask.task(), keyedTask.completion()), false, e);
                 }
             }
@@ -271,7 +278,7 @@ public final class AsyncWriteQueue {
             return OfferResult.QUEUED;
         }
 
-        logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FULL, maxQueueSize));
+        logService.warn(LogCategory.QUEUE, I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FULL, maxQueueSize));
 
         return switch (fullPolicy) {
             case DROP -> {
@@ -296,7 +303,7 @@ public final class AsyncWriteQueue {
             completeIfPresent(completion, false, e);
             return OfferResult.DROPPED;
         }
-        logger.warn(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FULL_TIMEOUT, fullTimeoutMs));
+        logService.warn(LogCategory.QUEUE, I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_FULL_TIMEOUT, fullTimeoutMs));
         return runSync(taskForSync, completion);
     }
 
@@ -311,7 +318,8 @@ public final class AsyncWriteQueue {
             return OfferResult.EXECUTED;
         } catch (Exception e) {
             completeIfPresent(completion, false, e);
-            logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, taskForSync.description()), e);
+            logService.error(LogCategory.QUEUE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_QUEUE_TASK_FAILED, taskForSync.description()), e);
             return OfferResult.EXECUTED;
         }
     }

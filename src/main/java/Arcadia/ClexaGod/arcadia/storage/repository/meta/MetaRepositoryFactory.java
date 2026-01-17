@@ -6,7 +6,7 @@ import Arcadia.ClexaGod.arcadia.storage.StorageManager;
 import Arcadia.ClexaGod.arcadia.storage.StorageProvider;
 import Arcadia.ClexaGod.arcadia.storage.repository.StorageRepository;
 import Arcadia.ClexaGod.arcadia.storage.repository.json.JsonRepository;
-import org.slf4j.Logger;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -16,7 +16,7 @@ public final class MetaRepositoryFactory {
     private MetaRepositoryFactory() {
     }
 
-    public static Optional<StorageRepository<MetaRecord>> create(StorageManager storageManager, Logger logger) {
+    public static Optional<StorageRepository<MetaRecord>> create(StorageManager storageManager, LogService logService) {
         StorageProvider provider = storageManager.getProvider();
         if (provider instanceof JsonStorageProvider jsonProvider) {
             Path metaPath = jsonProvider.getRootPath().resolve("meta");
@@ -24,8 +24,9 @@ public final class MetaRepositoryFactory {
                     "meta",
                     metaPath,
                     new MetaJsonCodec(),
-                    logger,
-                    storageManager.getRetryPolicy()
+                    logService,
+                    storageManager.getRetryPolicy(),
+                    jsonProvider.getShardConfig()
             );
             return Optional.of(storageManager.withCache(base));
         }
@@ -33,7 +34,7 @@ public final class MetaRepositoryFactory {
         if (provider instanceof PostgresStorageProvider pgProvider) {
             StorageRepository<MetaRecord> base = new PostgresMetaRepository(
                     pgProvider.getDataSource(),
-                    logger,
+                    logService,
                     storageManager.getRetryPolicy()
             );
             return Optional.of(storageManager.withCache(base));

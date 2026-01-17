@@ -1,12 +1,13 @@
 package Arcadia.ClexaGod.arcadia.storage.repository.meta;
 
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.logging.LogCategory;
+import Arcadia.ClexaGod.arcadia.logging.LogService;
 import Arcadia.ClexaGod.arcadia.storage.repository.StorageRepository;
 import Arcadia.ClexaGod.arcadia.storage.retry.RetryExecutor;
 import Arcadia.ClexaGod.arcadia.storage.retry.RetryOutcome;
 import Arcadia.ClexaGod.arcadia.storage.retry.RetryPolicy;
 import org.allaymc.api.message.I18n;
-import org.slf4j.Logger;
 
 import javax.sql.DataSource;
 import java.util.ArrayList;
@@ -19,16 +20,16 @@ import java.util.Optional;
 public final class PostgresMetaRepository implements StorageRepository<MetaRecord> {
 
     private final DataSource dataSource;
-    private final Logger logger;
+    private final LogService logService;
     private final RetryPolicy retryPolicy;
 
-    public PostgresMetaRepository(DataSource dataSource, Logger logger) {
-        this(dataSource, logger, null);
+    public PostgresMetaRepository(DataSource dataSource, LogService logService) {
+        this(dataSource, logService, null);
     }
 
-    public PostgresMetaRepository(DataSource dataSource, Logger logger, RetryPolicy retryPolicy) {
+    public PostgresMetaRepository(DataSource dataSource, LogService logService, RetryPolicy retryPolicy) {
         this.dataSource = dataSource;
-        this.logger = logger;
+        this.logService = logService;
         this.retryPolicy = retryPolicy;
     }
 
@@ -49,7 +50,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
                 }
             }
         } catch (Exception e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), id), e);
+            logService.error(LogCategory.STORAGE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), id), e);
         }
         return Optional.empty();
     }
@@ -62,7 +64,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
                 ON CONFLICT (key)
                 DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
                 """;
-        RetryOutcome outcome = RetryExecutor.run(retryPolicy, logger, "postgres/save " + getName() + "/" + record.getId(), () -> {
+        RetryOutcome outcome = RetryExecutor.run(retryPolicy, logService, LogCategory.STORAGE,
+                "postgres/save " + getName() + "/" + record.getId(), () -> {
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, record.getId());
@@ -75,9 +78,11 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
         if (!outcome.success()) {
             Exception error = outcome.error();
             if (error != null) {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_WRITE_FAILED, getName(), record.getId()), error);
+                logService.error(LogCategory.STORAGE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_WRITE_FAILED, getName(), record.getId()), error);
             } else {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_WRITE_FAILED, getName(), record.getId()));
+                logService.error(LogCategory.STORAGE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_WRITE_FAILED, getName(), record.getId()));
             }
         }
     }
@@ -85,7 +90,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
     @Override
     public void delete(String id) {
         String sql = "DELETE FROM arcadia_meta WHERE key = ?";
-        RetryOutcome outcome = RetryExecutor.run(retryPolicy, logger, "postgres/delete " + getName() + "/" + id, () -> {
+        RetryOutcome outcome = RetryExecutor.run(retryPolicy, logService, LogCategory.STORAGE,
+                "postgres/delete " + getName() + "/" + id, () -> {
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, id);
@@ -97,9 +103,11 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
         if (!outcome.success()) {
             Exception error = outcome.error();
             if (error != null) {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_DELETE_FAILED, getName(), id), error);
+                logService.error(LogCategory.STORAGE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_DELETE_FAILED, getName(), id), error);
             } else {
-                logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_DELETE_FAILED, getName(), id));
+                logService.error(LogCategory.STORAGE,
+                        I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_DELETE_FAILED, getName(), id));
             }
         }
     }
@@ -114,7 +122,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
                 return rs.next();
             }
         } catch (Exception e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_EXISTS_FAILED, getName(), id), e);
+            logService.error(LogCategory.STORAGE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_EXISTS_FAILED, getName(), id), e);
             return false;
         }
     }
@@ -144,7 +153,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
                 }
             }
         } catch (Exception e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), "list"), e);
+            logService.error(LogCategory.STORAGE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), "list"), e);
         }
         return records;
     }
@@ -159,7 +169,8 @@ public final class PostgresMetaRepository implements StorageRepository<MetaRecor
                 return rs.getLong(1);
             }
         } catch (Exception e) {
-            logger.error(I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), "count"), e);
+            logService.error(LogCategory.STORAGE,
+                    I18n.get().tr(LangKeys.LOG_STORAGE_POSTGRES_READ_FAILED, getName(), "count"), e);
         }
         return 0;
     }
