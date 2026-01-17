@@ -24,13 +24,18 @@ public final class MetaRepositoryFactory {
                     "meta",
                     metaPath,
                     new MetaJsonCodec(),
-                    logger
+                    logger,
+                    storageManager.getRetryPolicy()
             );
             return Optional.of(storageManager.withCache(base));
         }
 
         if (provider instanceof PostgresStorageProvider pgProvider) {
-            StorageRepository<MetaRecord> base = new PostgresMetaRepository(pgProvider.getDataSource(), logger);
+            StorageRepository<MetaRecord> base = new PostgresMetaRepository(
+                    pgProvider.getDataSource(),
+                    logger,
+                    storageManager.getRetryPolicy()
+            );
             return Optional.of(storageManager.withCache(base));
         }
 

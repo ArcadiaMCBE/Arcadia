@@ -2,10 +2,13 @@ package Arcadia.ClexaGod.arcadia.storage;
 
 import Arcadia.ClexaGod.arcadia.config.CoreConfig;
 import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
+import Arcadia.ClexaGod.arcadia.storage.cache.CachePolicy;
 import Arcadia.ClexaGod.arcadia.storage.cache.StorageCacheManager;
 import Arcadia.ClexaGod.arcadia.storage.queue.AsyncWriteQueue;
+import Arcadia.ClexaGod.arcadia.storage.queue.QueueFullPolicy;
 import Arcadia.ClexaGod.arcadia.storage.model.StorageRecord;
 import Arcadia.ClexaGod.arcadia.storage.repository.StorageRepository;
+import Arcadia.ClexaGod.arcadia.storage.retry.RetryPolicy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.allaymc.api.message.I18n;
@@ -27,12 +30,26 @@ public final class StorageManager {
     private StorageProvider provider;
     @Getter
     private StorageCacheManager cacheManager;
+    @Getter
+    private RetryPolicy retryPolicy;
 
     public void init(CoreConfig config) {
-        if (writeQueue == null) {
-            writeQueue = new AsyncWriteQueue(Server.getInstance().getVirtualThreadPool(), logger, 5000);
+        int maxQueueSize = config.getStorageQueueMaxSize();
+        QueueFullPolicy queuePolicy = config.getStorageQueueFullPolicy();
+        int queueTimeoutMs = config.getStorageQueueFullTimeoutMs();
+        if (writeQueue == null
+                || writeQueue.getMaxQueueSize() != maxQueueSize
+                || writeQueue.getFullPolicy() != queuePolicy
+                || writeQueue.getFullTimeoutMs() != queueTimeoutMs) {
+            if (writeQueue != null && writeQueue.isStarted()) {
+                writeQueue.shutdown(Duration.ofSeconds(10));
+            }
+            writeQueue = new AsyncWriteQueue(Server.getInstance().getVirtualThreadPool(), logger, maxQueueSize, queuePolicy, queueTimeoutMs);
+        }
+        if (!writeQueue.isStarted()) {
             writeQueue.start();
         }
+        retryPolicy = config.getStorageRetryPolicy();
         StorageType requested = config.getStorageType();
         logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_SELECTED, requested.getId()));
 
@@ -66,13 +83,16 @@ public final class StorageManager {
     public void close() {
         if (cacheManager != null) {
             cacheManager.shutdown();
+            cacheManager = null;
         }
         if (writeQueue != null && writeQueue.isStarted()) {
             writeQueue.shutdown(Duration.ofSeconds(10));
         }
         if (provider != null) {
             provider.close();
+            provider = null;
         }
+        retryPolicy = null;
     }
 
     public StorageProvider getProvider() {
@@ -84,6 +104,32 @@ public final class StorageManager {
             return repository;
         }
         return cacheManager.wrap(repository);
+    }
+
+    public <T extends StorageRecord> StorageRepository<T> withCache(StorageRepository<T> repository, CachePolicy policy) {
+        if (cacheManager == null) {
+            return repository;
+        }
+        return cacheManager.wrap(repository, policy);
+    }
+
+    public void flushCaches() {
+        if (cacheManager != null) {
+            cacheManager.flushAll();
+        }
+    }
+
+    public void flushCachesAsync() {
+        if (cacheManager == null) {
+            return;
+        }
+        Server.getInstance().getScheduler().runLaterAsync(taskCreator, cacheManager::flushAll);
+    }
+
+    public void scheduleWarmUp() {
+        if (cacheManager != null) {
+            cacheManager.warmUp();
+        }
     }
 
     private StorageProvider createProvider(StorageType type, CoreConfig config) {

@@ -4,6 +4,8 @@ import Arcadia.ClexaGod.arcadia.i18n.LangKeys;
 import Arcadia.ClexaGod.arcadia.storage.PostgresConfig;
 import Arcadia.ClexaGod.arcadia.storage.StorageType;
 import Arcadia.ClexaGod.arcadia.storage.cache.CacheConfig;
+import Arcadia.ClexaGod.arcadia.storage.queue.QueueFullPolicy;
+import Arcadia.ClexaGod.arcadia.storage.retry.RetryPolicy;
 import lombok.Getter;
 import org.allaymc.api.message.I18n;
 import org.allaymc.api.message.LangCode;
@@ -26,13 +28,18 @@ public final class CoreConfig {
     private final String defaultLang;
     private final StorageType storageType;
     private final String storageJsonPath;
+    private final int storageQueueMaxSize;
+    private final QueueFullPolicy storageQueueFullPolicy;
+    private final int storageQueueFullTimeoutMs;
+    private final RetryPolicy storageRetryPolicy;
     private final PostgresConfig postgresConfig;
     private final CacheConfig cacheConfig;
     private final Map<String, Boolean> moduleToggles;
     private final List<ConfigIssue> issues;
 
     private CoreConfig(String owner, String serverName, boolean debug, String defaultLang,
-                       StorageType storageType, String storageJsonPath, PostgresConfig postgresConfig,
+                       StorageType storageType, String storageJsonPath, int storageQueueMaxSize, QueueFullPolicy storageQueueFullPolicy,
+                       int storageQueueFullTimeoutMs, RetryPolicy storageRetryPolicy, PostgresConfig postgresConfig,
                        CacheConfig cacheConfig, Map<String, Boolean> moduleToggles, List<ConfigIssue> issues) {
         this.owner = owner;
         this.serverName = serverName;
@@ -40,6 +47,10 @@ public final class CoreConfig {
         this.defaultLang = defaultLang;
         this.storageType = storageType;
         this.storageJsonPath = storageJsonPath;
+        this.storageQueueMaxSize = storageQueueMaxSize;
+        this.storageQueueFullPolicy = storageQueueFullPolicy;
+        this.storageQueueFullTimeoutMs = storageQueueFullTimeoutMs;
+        this.storageRetryPolicy = storageRetryPolicy;
         this.postgresConfig = postgresConfig;
         this.cacheConfig = cacheConfig;
         this.moduleToggles = Collections.unmodifiableMap(moduleToggles);
@@ -94,6 +105,48 @@ public final class CoreConfig {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_JSON_PATH_INVALID));
             storageJsonPath = "data";
         }
+
+        int storageQueueMaxSize = config.getInt("storage.queue.max-size", 5000);
+        if (storageQueueMaxSize <= 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_QUEUE_MAX_INVALID, String.valueOf(storageQueueMaxSize)));
+            storageQueueMaxSize = 5000;
+        }
+
+        String queuePolicyRaw = config.getString("storage.queue.on-full", "block").trim();
+        QueueFullPolicy queuePolicy = QueueFullPolicy.from(queuePolicyRaw);
+        if (queuePolicy == null) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_QUEUE_ON_FULL_INVALID, queuePolicyRaw));
+            queuePolicy = QueueFullPolicy.BLOCK;
+        }
+
+        int queueFullTimeoutMs = config.getInt("storage.queue.full-timeout-ms", 200);
+        if (queueFullTimeoutMs < 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_QUEUE_TIMEOUT_INVALID, String.valueOf(queueFullTimeoutMs)));
+            queueFullTimeoutMs = 200;
+        }
+
+        boolean retryEnabled = config.getBoolean("storage.retry.enabled", true);
+        int retryAttempts = config.getInt("storage.retry.max-attempts", 3);
+        if (retryAttempts < 1) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_RETRY_ATTEMPTS_INVALID, String.valueOf(retryAttempts)));
+            retryAttempts = 3;
+        }
+        int retryBaseDelayMs = config.getInt("storage.retry.base-delay-ms", 50);
+        if (retryBaseDelayMs < 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_RETRY_BASE_DELAY_INVALID, String.valueOf(retryBaseDelayMs)));
+            retryBaseDelayMs = 50;
+        }
+        int retryMaxDelayMs = config.getInt("storage.retry.max-delay-ms", 1000);
+        if (retryMaxDelayMs < retryBaseDelayMs) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_RETRY_MAX_DELAY_INVALID, String.valueOf(retryMaxDelayMs)));
+            retryMaxDelayMs = Math.max(retryBaseDelayMs, 1000);
+        }
+        int retryJitterMs = config.getInt("storage.retry.jitter-ms", 50);
+        if (retryJitterMs < 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_STORAGE_RETRY_JITTER_INVALID, String.valueOf(retryJitterMs)));
+            retryJitterMs = 50;
+        }
+        RetryPolicy retryPolicy = new RetryPolicy(retryEnabled, retryAttempts, retryBaseDelayMs, retryMaxDelayMs, retryJitterMs);
 
         String pgHost = config.getString("storage.postgresql.host", "127.0.0.1").trim();
         int pgPort = config.getInt("storage.postgresql.port", 5432);
@@ -151,22 +204,44 @@ public final class CoreConfig {
         );
 
         boolean cacheEnabled = config.getBoolean("cache.enabled", true);
-        int cacheTtlSeconds = config.getInt("cache.ttl-seconds", 600);
+        int cacheTtlSeconds = config.getInt("cache.ttl-seconds", 900);
         if (cacheTtlSeconds <= 0) {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_TTL_INVALID, String.valueOf(cacheTtlSeconds)));
-            cacheTtlSeconds = 600;
+            cacheTtlSeconds = 900;
         }
         int cacheMaxEntries = config.getInt("cache.max-entries", 2100);
         if (cacheMaxEntries <= 0) {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_MAX_ENTRIES_INVALID, String.valueOf(cacheMaxEntries)));
             cacheMaxEntries = 2100;
         }
-        int cacheFlushInterval = config.getInt("cache.flush-interval-seconds", 30);
+        int cacheFlushInterval = config.getInt("cache.flush-interval-seconds", 10);
         if (cacheFlushInterval <= 0) {
             issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_FLUSH_INTERVAL_INVALID, String.valueOf(cacheFlushInterval)));
-            cacheFlushInterval = 30;
+            cacheFlushInterval = 10;
         }
-        CacheConfig cacheConfig = new CacheConfig(cacheEnabled, cacheTtlSeconds, cacheMaxEntries, cacheFlushInterval);
+        boolean warmupEnabled = config.getBoolean("cache.warmup.enabled", false);
+        int warmupMaxEntries = config.getInt("cache.warmup.max-entries-per-repo", 500);
+        if (warmupMaxEntries <= 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_WARMUP_MAX_INVALID, String.valueOf(warmupMaxEntries)));
+            warmupMaxEntries = 500;
+        }
+        int warmupDelaySeconds = config.getInt("cache.warmup.delay-seconds", 5);
+        if (warmupDelaySeconds < 0) {
+            issues.add(new ConfigIssue(LangKeys.LOG_CONFIG_CACHE_WARMUP_DELAY_INVALID, String.valueOf(warmupDelaySeconds)));
+            warmupDelaySeconds = 5;
+        }
+        boolean flushOnPlayerQuit = config.getBoolean("cache.flush-on-player-quit", true);
+
+        CacheConfig cacheConfig = new CacheConfig(
+                cacheEnabled,
+                cacheTtlSeconds,
+                cacheMaxEntries,
+                cacheFlushInterval,
+                warmupEnabled,
+                warmupMaxEntries,
+                warmupDelaySeconds,
+                flushOnPlayerQuit
+        );
 
         Map<String, Boolean> moduleToggles = new LinkedHashMap<>();
         ConfigSection section = config.getSection("modules");
@@ -182,7 +257,8 @@ public final class CoreConfig {
             moduleToggles.put(key, enabled);
         }
 
-        return new CoreConfig(owner, serverName, debug, defaultLang, storageType, storageJsonPath, postgresConfig,
-                cacheConfig, moduleToggles, issues);
+        return new CoreConfig(owner, serverName, debug, defaultLang,
+                storageType, storageJsonPath, storageQueueMaxSize, queuePolicy, queueFullTimeoutMs, retryPolicy,
+                postgresConfig, cacheConfig, moduleToggles, issues);
     }
 }

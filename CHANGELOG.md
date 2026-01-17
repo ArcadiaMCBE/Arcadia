@@ -18,6 +18,13 @@
 - Storage cache eklendi: TTL, max entries ve periyodik flush ayarlari.
 - Ornek meta repository eklendi ve cache sarmalama (withCache) akisi moduller icin gosterildi.
 - PostgreSQL meta repository CRUD loglari i18n anahtarlarina tasindi.
+- AsyncWriteQueue shutdown akisi guclendirildi (timeout sonrasi force-drain).
+- Cache icin flush-on-save opsiyonu ve beklemeli write altyapisi eklendi.
+- Guvenli config reload akisi eklendi (cache + storage yeniden baslatilir).
+- Storage queue max-size ayari config'e eklendi ve reload ile uygulanir.
+- StorageRepository API genisletildi: loadAll, count ve filter destegi.
+- Cache warmup ve player quit/disconnect flush akisi eklendi.
+- Storage write retry/backoff ve queue full stratejisi eklendi.
 
 ## 0.1.0
 

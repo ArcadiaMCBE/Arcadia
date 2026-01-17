@@ -116,6 +116,16 @@ public final class RecordCache<T extends StorageRecord> {
         }
     }
 
+    public List<CacheSnapshot<T>> snapshotAll() {
+        synchronized (entries) {
+            List<CacheSnapshot<T>> all = new ArrayList<>(entries.size());
+            for (Map.Entry<String, CacheEntry<T>> entry : entries.entrySet()) {
+                all.add(new CacheSnapshot<>(entry.getKey(), entry.getValue().value));
+            }
+            return all;
+        }
+    }
+
     public int countDirty() {
         int count = 0;
         synchronized (entries) {

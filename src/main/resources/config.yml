@@ -8,6 +8,24 @@ storage:
   type: "json"
   json:
     path: "data"
+  queue:
+    # max queued write tasks before applying on-full policy
+    max-size: 5000
+    # on-full: drop | block | sync
+    on-full: "block"
+    # block timeout (ms) before sync fallback
+    full-timeout-ms: 200
+  retry:
+    # retry failed writes (json/postgres)
+    enabled: true
+    # max retry attempts
+    max-attempts: 3
+    # base backoff delay (ms)
+    base-delay-ms: 50
+    # max backoff delay (ms)
+    max-delay-ms: 1000
+    # random jitter added to delay (ms)
+    jitter-ms: 50
   postgresql:
     host: "127.0.0.1"
     port: 5432
@@ -23,9 +41,21 @@ storage:
 
 cache:
   enabled: true
-  ttl-seconds: 600
+  # ttl for clean cache entries (seconds)
+  ttl-seconds: 900
+  # max cache entries (all repos total)
   max-entries: 2100
-  flush-interval-seconds: 30
+  # flush interval (seconds)
+  flush-interval-seconds: 10
+  warmup:
+    # preload cache on startup
+    enabled: false
+    # max entries per repo to warmup
+    max-entries-per-repo: 500
+    # warmup delay after enable (seconds)
+    delay-seconds: 5
+  # flush cache when player quits/disconnects
+  flush-on-player-quit: true
 
 modules:
   system: true

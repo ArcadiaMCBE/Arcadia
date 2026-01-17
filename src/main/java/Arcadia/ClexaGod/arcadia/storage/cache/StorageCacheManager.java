@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class StorageCacheManager {
 
@@ -22,6 +23,7 @@ public final class StorageCacheManager {
     private final TaskCreator taskCreator;
     private final List<CachedRepository<?>> repositories = new CopyOnWriteArrayList<>();
     private volatile boolean started;
+    private final AtomicBoolean warmupScheduled = new AtomicBoolean(false);
 
     public StorageCacheManager(CacheConfig config, Logger logger, AsyncWriteQueue writeQueue,
                                Scheduler scheduler, TaskCreator taskCreator) {
@@ -61,22 +63,58 @@ public final class StorageCacheManager {
         started = false;
     }
 
+    public boolean isFlushOnPlayerQuit() {
+        return config.isFlushOnPlayerQuit();
+    }
+
     public <T extends StorageRecord> StorageRepository<T> wrap(StorageRepository<T> repository) {
         if (!config.isEnabled()) {
             return repository;
         }
+        return wrap(repository, CachePolicy.defaultPolicy());
+    }
+
+    public <T extends StorageRecord> StorageRepository<T> wrap(StorageRepository<T> repository, CachePolicy policy) {
+        if (!config.isEnabled()) {
+            return repository;
+        }
+        CachePolicy effective = policy != null ? policy : CachePolicy.defaultPolicy();
         RecordCache<T> cache = new RecordCache<>(config.getMaxEntries(), config.getTtlSeconds());
-        CachedRepository<T> cached = new CachedRepository<>(repository, cache, writeQueue, logger);
+        CachedRepository<T> cached = new CachedRepository<>(repository, cache, writeQueue, logger, effective);
         repositories.add(cached);
         return cached;
     }
 
-    private void flushAll() {
+    public void flushAll() {
         if (!started) {
             return;
         }
         for (CachedRepository<?> repository : repositories) {
             repository.flush();
         }
+    }
+
+    public void warmUp() {
+        if (!started || !config.isWarmupEnabled()) {
+            return;
+        }
+        if (!warmupScheduled.compareAndSet(false, true)) {
+            return;
+        }
+        int delayTicks = Math.max(0, config.getWarmupDelaySeconds()) * 20;
+        scheduler.scheduleDelayed(taskCreator, this::runWarmUp, delayTicks, true);
+    }
+
+    private void runWarmUp() {
+        if (!started || !config.isWarmupEnabled()) {
+            return;
+        }
+        int limit = config.getWarmupMaxEntries();
+        logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_WARMUP_START, limit));
+        int loaded = 0;
+        for (CachedRepository<?> repository : repositories) {
+            loaded += repository.loadAll(limit).size();
+        }
+        logger.info(I18n.get().tr(LangKeys.LOG_STORAGE_CACHE_WARMUP_COMPLETE, repositories.size(), loaded));
     }
 }

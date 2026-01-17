@@ -11,4 +11,8 @@ public final class CacheConfig {
     private final int ttlSeconds;
     private final int maxEntries;
     private final int flushIntervalSeconds;
+    private final boolean warmupEnabled;
+    private final int warmupMaxEntries;
+    private final int warmupDelaySeconds;
+    private final boolean flushOnPlayerQuit;
 }

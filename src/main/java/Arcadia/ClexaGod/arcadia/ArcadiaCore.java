@@ -45,6 +45,9 @@ public class ArcadiaCore extends Plugin {
     public void onEnable() {
         getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_ENABLING));
         moduleRegistry.enableAll(this);
+        if (storageManager != null) {
+            storageManager.scheduleWarmUp();
+        }
         getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_ENABLED));
     }
 
@@ -58,5 +61,38 @@ public class ArcadiaCore extends Plugin {
             storageManager.close();
         }
         getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_DISABLED));
+    }
+
+    @Override
+    public boolean isReloadable() {
+        return true;
+    }
+
+    @Override
+    public void reload() {
+        getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_RELOADING));
+        try {
+            if (moduleRegistry != null) {
+                moduleRegistry.disableAll();
+            }
+            if (storageManager != null) {
+                storageManager.close();
+            }
+            if (configService != null) {
+                configService.reload();
+            }
+            if (storageManager != null && configService != null) {
+                storageManager.init(configService.getCoreConfig());
+            }
+            if (moduleRegistry != null) {
+                moduleRegistry.enableAll(this);
+            }
+            if (storageManager != null) {
+                storageManager.scheduleWarmUp();
+            }
+            getPluginLogger().info(I18n.get().tr(LangKeys.LOG_CORE_RELOADED));
+        } catch (Exception e) {
+            getPluginLogger().error(I18n.get().tr(LangKeys.LOG_CORE_RELOAD_FAILED), e);
+        }
     }
 }
